@@ -1,0 +1,5 @@
+FROM quay.io/fedora/postgresql-16:latest
+
+ENV POSTGRESQL_USER guestbook
+ENV POSTGRESQL_PASSWORD password
+ENV POSTGRESQL_DATABASE guestbook
