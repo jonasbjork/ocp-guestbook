@@ -1,0 +1,44 @@
+name: Build backend
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/narah111/ocp-guestbook/
+
+jobs:
+
+  build-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install podman
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build backend image
+        run: |
+          cd backend
+          podman build -t ${{ env.IMAGE_PREFIX }}backend:latest -f Containerfile .
+          podman tag ${{ env.IMAGE_PREFIX }}backend:latest ${{ env.IMAGE_PREFIX }}backend:${{ github.sha }}
+
+      - name: Push backend image
+        if: github.event_name != 'pull_request'
+        run: |
+          podman push ${{ env.IMAGE_PREFIX }}backend:latest
+          podman push ${{ env.IMAGE_PREFIX }}backend:${{ github.sha }}
