@@ -1,1 +1,64 @@
+name: Build with Podman
 
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install podman
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build frontend image
+        run: |
+          cd frontend
+          podman build -t ${{ env.IMAGE_PREFIX }}/guestbook-frontend:latest -f Containerfile .
+          podman tag ${{ env.IMAGE_PREFIX }}/guestbook-frontend:latest ${{ env.IMAGE_PREFIX }}/guestbook-frontend:${{ github.sha }}
+
+      - name: Push frontend image
+        if: github.event_name != 'pull_request'
+        run: |
+          podman push ${{ env.IMAGE_PREFIX }}/guestbook-frontend:latest
+          podman push ${{ env.IMAGE_PREFIX }}/guestbook-frontend:${{ github.sha }}
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [build-frontend]
+    if: always()
+
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## 🐳 Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.build-frontend.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "### 📦 Published Images" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "podman pull ${{ env.IMAGE_PREFIX }}/guestbook-frontend:latest" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
