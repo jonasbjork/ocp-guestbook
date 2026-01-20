@@ -1,0 +1,44 @@
+name: Build with Podman
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/narah111/ocp-guestbook/
+
+jobs:
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install podman
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build frontend image
+        run: |
+          cd frontend
+          podman build -t ${{ env.IMAGE_PREFIX }}frontend:latest -f Containerfile .
+          podman tag ${{ env.IMAGE_PREFIX }}frontend:latest ${{ env.IMAGE_PREFIX }}frontend:${{ github.sha }}
+
+      - name: Push frontend image
+        if: github.event_name != 'pull_request'
+        run: |
+          podman push ${{ env.IMAGE_PREFIX }}frontend:latest
+          podman push ${{ env.IMAGE_PREFIX }}frontend:${{ github.sha }}
