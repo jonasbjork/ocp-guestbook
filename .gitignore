@@ -1,0 +1,91 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp files
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# Dependency directories
+node_modules/
+vendor/
+.venv/
+env/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+pip-wheel-metadata/
+.pytest_cache/
+
+# Node / JS
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log
+
+# Java / JVM
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+*.class
+.settings/
+.mvn/
+*.log
+
+# Go
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build / distribution
+dist/
+build/
+coverage/
+coverage.xml
+
+# Docker
+docker-compose.override.yml
+
+# Kubernetes / OpenShift / Helm
+.kube/
+kubeconfig
+*.kubeconfig
+*.tgz
+
+# IDEs and editors
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+
+# Secrets / environment
+.env
+.env.local
+.env.*.local
+secrets.yml
+*.key
+*.pem
+
+# Terraform
+.terraform/
+
+# Misc
+*.bak
+*.old
